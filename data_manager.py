@@ -16,14 +16,14 @@ class DataManager:
         response.raise_for_status()
         self.sheet_data = response.json()
 
-    def update_data(self, endpoint, token, text):
+    def update_data(self, endpoint, token, code):
         header = {
             "Authorization": f"Bearer {token}"
         }
 
         body = {
             "price": {
-                "iataCode": text
+                "iataCode": code
             }
         }
         response = requests.put(endpoint, headers=header, json=body)

@@ -4,6 +4,7 @@ from flight_search import FlightSearch
 from pprint import pprint
 import os
 
+
 TOKEN = os.environ.get("TOKEN")
 sheet_endpoint = os.environ.get("SHEET_ENDPOINT")
 
@@ -17,6 +18,7 @@ for item in range(len(sheet_data)):
     if len(each_row["iataCode"]) == 0:
         flight_search = FlightSearch()
         code = flight_search.get_destination_code(each_row["city"])
+        each_row["iataCode"] = code
         data_manager.update_data(f"{sheet_endpoint}/{each_row['id']}", TOKEN, code)
 
 pprint(sheet_data)
