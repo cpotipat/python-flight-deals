@@ -1,27 +1,33 @@
 from data_manager import DataManager
-from flight_data import FlightData
 from flight_search import FlightSearch
-from pprint import pprint
-import os
-
-
-TOKEN = os.environ.get("TOKEN")
-sheet_endpoint = os.environ.get("SHEET_ENDPOINT")
+from datetime import datetime, timedelta
 
 data_manager = DataManager()
-data_manager.get_data(sheet_endpoint, TOKEN)
-sheet_data = data_manager.sheet_data["prices"]
+sheet_data = data_manager.get_data()
+flight_search = FlightSearch()
 
-for item in range(len(sheet_data)):
-    each_row = sheet_data[item]
+ORIGIN_CITY_IATA = "LON"
 
-    if len(each_row["iataCode"]) == 0:
+for row in sheet_data:
+
+    if len(row["iataCode"]) == 0:
         flight_search = FlightSearch()
-        code = flight_search.get_destination_code(each_row["city"])
-        each_row["iataCode"] = code
-        data_manager.update_data(f"{sheet_endpoint}/{each_row['id']}", TOKEN, code)
+        row["iataCode"] = flight_search.get_destination_code(row["city"])
+        data_manager.update_data(row)
 
-pprint(sheet_data)
+print(sheet_data)
+
+tomorrow = datetime.now() + timedelta(days=1)
+six_month_from_today = datetime.now() + timedelta(days=(6 * 30))
+
+for destination in sheet_data:
+    flight = flight_search.search_flight(
+        ORIGIN_CITY_IATA,
+        destination["iataCode"],
+        tomorrow,
+        six_month_from_today
+    )
+
 
 
 

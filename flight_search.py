@@ -34,8 +34,8 @@ class FlightSearch:
         body = {
             "fly_from": origin_city_code,
             "fly_to": destination_city_code,
-            "date_from": from_time,
-            "date_to": to_time,
+            "date_from": from_time.strftime("%d/%m/%Y"),
+            "date_to": to_time.strftime("%d/%m/%Y"),
             "nights_in_dst_from": 7,
             "nights_in_dst_to": 28,
             "flight_type": "round",
@@ -45,8 +45,22 @@ class FlightSearch:
         }
         response = requests.get(f"{TEQUILA_ENDPOINT}/v2/search", headers=header, params=body)
         response.raise_for_status()
-        print(response.json())
 
+        try:
+            data = response.json()["data"][0]
+        except IndexError:
+            print(f"No flights found for {destination_city_code}.")
+            return None
 
-flight_search = FlightSearch()
-flight_search.search_flight("LON", "PAR", "01/05/2021", "05/05/2021")
+        flight_data = FlightData(
+            price=data["price"],
+            origin_city=data["cityFrom"],
+            origin_airport=data["flyFrom"],
+            destination_city=data["cityTo"],
+            destination_airport=data["flyTo"],
+            depart_date=data["route"][0]["local_departure"].split("T")[0],
+            return_date=data["route"][1]["local_departure"].split("T")[0],
+        )
+        print(f"{flight_data.destination_city}: £{flight_data.price}")
+        return flight_data
+
